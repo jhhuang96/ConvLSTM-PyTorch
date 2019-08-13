@@ -39,10 +39,16 @@ valid_size = 0.2
 shuffle_dataset = True
 random_seed= 1996
 n_epochs = 500
+np.random.seed(random_seed)
+if torch.cuda.device_count()>1:
+    torch.cuda.manual_seed(random_seed)
+else:
+    torch.manual_seed(random_seed)
 
 mnistdata = MovingMNISTdataset("mnist_test_seq.npy")
 train_size = int(0.8 * len(mnistdata))
 test_size = len(mnistdata) - train_size
+torch.manual_seed(torch.initial_seed())
 train_dataset, test_dataset = random_split(mnistdata, [train_size, test_size])
 
 num_train = len(train_dataset)
@@ -153,7 +159,7 @@ def train():
                     labelframe = label[:, seq, ...].view(batch_size, -1)
                     curloss = crossentropyloss(predframe, labelframe)
                     loss += curloss  
-            loss_aver = (loss.item() / 10) / batch_size
+            loss_aver = loss.item() / batch_size
             loss.backward()
             optimizer.step()          
             print ("trainloss: {:9.2f},  epoch : {:02d}".format(loss_aver,epoch),end = '\r', flush=True)
@@ -187,7 +193,7 @@ def train():
                     labelframe = label[:, seq, ...].view(batch_size, -1)
                     curloss = crossentropyloss(predframe, labelframe)
                     loss += curloss
-            loss_aver = (loss.item() / 10) / batch_size
+            loss_aver = loss.item() / batch_size
             print ("validloss: {:9.2f},  epoch : {:02d}".format(loss_aver,epoch),end = '\r', flush=True)
             # record validation loss
             valid_losses.append(loss_aver)
