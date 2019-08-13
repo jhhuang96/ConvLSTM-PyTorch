@@ -81,8 +81,8 @@ CRNNargs = [CRNN_shape, CRNN_inp_chans, CRNN_filter_size, CRNN_num_features]
 
 decoder_shape = (64, 64)
 decoder_input_channels = 2*sum(CRNN_num_features)
-decoder_filter_size = 5
-decoder_num_features = 1
+decoder_filter_size = 1
+decoder_num_features = 1 # 相当于对最后一层输出做decoder_filter_size*decoder_filter_size卷积，获得我们需要输出的通道。
 
 decoderargs = [decoder_shape, decoder_input_channels, decoder_filter_size, decoder_num_features]
 
