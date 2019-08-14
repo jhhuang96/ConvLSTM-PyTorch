@@ -33,19 +33,23 @@ else:
 
 
 ###Dataset and Dataloader
-batch_size = 4
+batch_size = 8
 # percentage of training set to use as validation
 valid_size = 0.2
 shuffle_dataset = True
 random_seed= 1996
 n_epochs = 500
 np.random.seed(random_seed)
+random.seed(random_seed)  # Python random module
+torch.manual_seed(random_seed)
 if torch.cuda.device_count()>1:
-    torch.cuda.manual_seed(random_seed)
+    torch.cuda.manual_seed_all(random_seed)
 else:
-    torch.manual_seed(random_seed)
+    torch.cuda.manual_seed(random_seed)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
 
-mnistdata = MovingMNISTdataset("mnist_test_seq.npy")
+mnistdata = MovingMNISTdataset("data/mnist_test_seq.npy")
 train_size = int(0.8 * len(mnistdata))
 test_size = len(mnistdata) - train_size
 torch.manual_seed(torch.initial_seed())
@@ -78,7 +82,7 @@ valid_loader = DataLoader(train_dataset,
 test_loader = DataLoader(test_dataset,
                          batch_size=batch_size)
 
-CRNN_num_features=[128,64,64]
+CRNN_num_features=[64,32,32]
 CRNN_filter_size=5
 CRNN_shape=(64,64)#H,W
 CRNN_inp_chans=1
@@ -88,7 +92,7 @@ CRNNargs = [CRNN_shape, CRNN_inp_chans, CRNN_filter_size, CRNN_num_features]
 decoder_shape = (64, 64)
 decoder_input_channels = 2*sum(CRNN_num_features)
 decoder_filter_size = 1
-decoder_num_features = 1 # 相当于对最后一层输出做decoder_filter_size*decoder_filter_size卷积，获得我们需要输出的通道。
+decoder_num_features = 1
 
 decoderargs = [decoder_shape, decoder_input_channels, decoder_filter_size, decoder_num_features]
 
@@ -159,7 +163,7 @@ def train():
                     labelframe = label[:, seq, ...].view(batch_size, -1)
                     curloss = crossentropyloss(predframe, labelframe)
                     loss += curloss  
-            loss_aver = loss.item() / batch_size
+            loss_aver = loss.item() / batch_size                              
             loss.backward()
             optimizer.step()          
             print ("trainloss: {:9.2f},  epoch : {:02d}".format(loss_aver,epoch),end = '\r', flush=True)
@@ -193,7 +197,7 @@ def train():
                     labelframe = label[:, seq, ...].view(batch_size, -1)
                     curloss = crossentropyloss(predframe, labelframe)
                     loss += curloss
-            loss_aver = loss.item() / batch_size
+            loss_aver = loss.item() / batch_size 
             print ("validloss: {:9.2f},  epoch : {:02d}".format(loss_aver,epoch),end = '\r', flush=True)
             # record validation loss
             valid_losses.append(loss_aver)
