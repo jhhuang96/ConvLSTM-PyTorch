@@ -2,6 +2,7 @@ from Pytorch_RNN import *
 from torch.utils.data import DataLoader,random_split
 from torch.utils.data.sampler import SubsetRandomSampler
 from pytorchtools import EarlyStopping
+from tqdm import tqdm
 import argparse
 import os
 import torch.optim as optim
@@ -29,18 +30,17 @@ if args.MSELoss:
 if args.crossentropyloss:
     objectfunction = 'crossentropyloss'
 else:
-    objectfunction = 'crossentropyloss'
+    objectfunction = 'MSELoss'
 
 
 ###Dataset and Dataloader
-batch_size = 16
+batch_size = 32
 # percentage of training set to use as validation
 valid_size = 0.2
 shuffle_dataset = True
 random_seed= 1996
 n_epochs = 500
 np.random.seed(random_seed)
-random.seed(random_seed)  # Python random module
 torch.manual_seed(random_seed)
 if torch.cuda.device_count()>1:
     torch.cuda.manual_seed_all(random_seed)
@@ -132,12 +132,13 @@ def train():
     avg_train_losses = []
     # to track the average validation loss per epoch as the model trains
     avg_valid_losses = [] 
-    # mini_val_loss = 999999
+    # mini_val_loss = np.inf
     for epoch in range(1, n_epochs + 1):
         ###################
         # train the model #
         ###################
-        for data in train_loader:
+        t = tqdm(train_loader,leave=False,total=len(train_loader))
+        for data in t:
 
             input = data[:, 0:10, ...].to(device)
             label = data[:, 10:20, ...].to(device)
@@ -153,8 +154,10 @@ def train():
 
             if objectfunction == 'MSELoss':
                 loss = 0
-                for seq in range(len(label)):
-                    curloss = lossfunction(pred[seq], label[seq])
+                for seq in range(10):
+                    labelframe = label[:, seq, ...].view(batch_size, -1)
+                    predframe = pred[seq].view(batch_size, -1)
+                    curloss = lossfunction(predframe, labelframe)
                     loss += curloss
 
             if objectfunction == 'crossentropyloss':
@@ -163,49 +166,55 @@ def train():
                     predframe = torch.sigmoid(pred[seq].view(batch_size, -1))
                     labelframe = label[:, seq, ...].view(batch_size, -1)
                     curloss = crossentropyloss(predframe, labelframe)
-                    loss += curloss  
+                    loss += curloss 
+                     
             loss_aver = loss.item()  / batch_size
             train_losses.append(loss_aver)                           
             loss.backward()
             optimizer.step()          
-            print ("trainloss: {:9.2f},  epoch : {:02d}".format(loss_aver,epoch),end = '\r', flush=True)         
+            #print ("trainloss: {:.6f},  epoch : {:02d}".format(loss_aver,epoch),end = '\r', flush=True)
+            t.set_postfix({'trainloss': '{:.6f}'.format(loss_aver),'epoch' : '{:02d}'.format(epoch)})  
         tb.add_scalar('TrainLoss',loss_aver,epoch)
         ######################    
         # validate the model #
-        ######################           
-        for data in valid_loader:
-            input = data[:, 0:10, ...].to(device)
-            label = data[:, 10:20, ...].to(device)
+        ######################
+        with torch.no_grad():   
+            t = tqdm(valid_loader,leave=False,total=len(valid_loader))     
+            for data in t:
+                input = data[:, 0:10, ...].to(device)
+                label = data[:, 10:20, ...].to(device)
 
-            if multipleDevice:
-                hidden_state = net.module.init_hidden(batch_size)
-            else:
-                hidden_state = net.init_hidden(batch_size)
+                if multipleDevice:
+                    hidden_state = net.module.init_hidden(batch_size)
+                else:
+                    hidden_state = net.init_hidden(batch_size)
+            
+                pred = net(input, hidden_state)
 
-            pred = net(input, hidden_state)
+                if objectfunction == 'MSELoss':
+                    loss = 0
+                    for seq in range(10):
+                        labelframe = label[:, seq, ...].view(batch_size, -1)
+                        predframe = pred[seq].view(batch_size, -1)
+                        curloss = lossfunction(predframe, labelframe)
+                        loss += curloss
 
-            if objectfunction == 'MSELoss':
-                loss = 0
-                for seq in range(len(label)):
-                    curloss = lossfunction(pred[seq], label[seq])
-                    loss += curloss
-    
-
-            if objectfunction == 'crossentropyloss':
-                loss = 0
-                for seq in range(10):
-                    predframe = torch.sigmoid(pred[seq].view(batch_size, -1))
-                    labelframe = label[:, seq, ...].view(batch_size, -1)
-                    curloss = crossentropyloss(predframe, labelframe)
-                    loss += curloss
-            loss_aver = loss.item() / batch_size
-            # record validation loss
-            valid_losses.append(loss_aver)
-            print ("validloss: {:9.2f},  epoch : {:02d}".format(loss_aver,epoch),end = '\r', flush=True)
-
+                if objectfunction == 'crossentropyloss':
+                    loss = 0
+                    for seq in range(10):
+                        predframe = torch.sigmoid(pred[seq].view(batch_size, -1))
+                        labelframe = label[:, seq, ...].view(batch_size, -1)
+                        curloss = crossentropyloss(predframe, labelframe)
+                        loss += curloss
+                        
+                loss_aver = loss.item() / batch_size
+                # record validation loss
+                valid_losses.append(loss_aver)
+                #print ("validloss: {:.6f},  epoch : {:02d}".format(loss_aver,epoch),end = '\r', flush=True)
+                t.set_postfix({'validloss': '{:.6f}'.format(loss_aver),'epoch' : '{:02d}'.format(epoch)}) 
 
         tb.add_scalar('ValidLoss',loss_aver,epoch)
-        
+        torch.cuda.empty_cache()
         # print training/validation statistics 
         # calculate average loss over an epoch
         train_loss = np.average(train_losses)
@@ -216,8 +225,8 @@ def train():
         epoch_len = len(str(n_epochs))
         
         print_msg = (f'[{epoch:>{epoch_len}}/{n_epochs:>{epoch_len}}] ' +
-                     f'train_loss: {train_loss:.5f} ' +
-                     f'valid_loss: {valid_loss:.5f}')
+                     f'train_loss: {train_loss:.6f} ' +
+                     f'valid_loss: {valid_loss:.6f}')
         
         print(print_msg)
         '''
@@ -264,7 +273,7 @@ def inference():
     else:
         multipleDevice = False
 
-    file_path = os.getcwd() + '/trained_model.6308.23'
+    file_path = os.getcwd() + '/checkpoint/trained_model.3994.24'
     inferencenet = torch.load(file_path)
 
     for data in test_loader:

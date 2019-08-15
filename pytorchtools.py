@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import os
 
+
 class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
     def __init__(self, patience=7, verbose=False):
@@ -41,5 +42,5 @@ class EarlyStopping:
         if self.verbose:
             print(f'Validation loss decreased ({self.val_loss_min:.9f} --> {val_loss:.9f}).  Saving model ...')
         save_path = os.getcwd()
-        torch.save(model, save_path + "/" + "checkpoint/trained_model-{:.2f}".format(val_loss))
+        torch.save(model, save_path + "/" + "checkpoint/trained_model_{:.6f}".format(val_loss))
         self.val_loss_min = val_loss
