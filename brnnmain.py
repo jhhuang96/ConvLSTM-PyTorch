@@ -152,7 +152,7 @@ def train():
 
             if objectfunction == 'MSELoss':
                 loss = 0
-                for seq in range(len(label)):
+                for seq in range(10):
                     labelframe = label[:, seq, ...].view(batch_size, -1)
                     predframe = pred[seq].view(batch_size, -1)
                     curloss = lossfunction(predframe, labelframe)
@@ -189,7 +189,7 @@ def train():
 
                 if objectfunction == 'MSELoss':
                     loss = 0
-                    for seq in range(len(label)):
+                    for seq in range(10):
                         labelframe = label[:, seq, ...].view(batch_size, -1)
                         predframe = pred[seq].view(batch_size, -1)
                         curloss = lossfunction(predframe, labelframe)
