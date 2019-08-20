@@ -115,7 +115,7 @@ def train():
     net.to(device)
 
     if objectfunction == 'MSELoss':
-        lossfunction = nn.MSELoss().cuda()
+        lossfunction = nn.MSELoss(reduction='sum').cuda()
     
     optimizer = optim.RMSprop(net.parameters(), lr = 0.0001)
 
@@ -173,7 +173,7 @@ def train():
             loss.backward()
             optimizer.step()          
             #print ("trainloss: {:.6f},  epoch : {:02d}".format(loss_aver,epoch),end = '\r', flush=True)
-            t.set_postfix({'trainloss': '{:.6f}'.format(loss_aver),'epoch' : '{:02d}'.format(epoch)})  
+            t.set_postfix({'trainloss': '{:.2f}'.format(loss_aver),'epoch' : '{:02d}'.format(epoch)})  
         tb.add_scalar('TrainLoss',loss_aver,epoch)
         ######################    
         # validate the model #
@@ -211,7 +211,7 @@ def train():
                 # record validation loss
                 valid_losses.append(loss_aver)
                 #print ("validloss: {:.6f},  epoch : {:02d}".format(loss_aver,epoch),end = '\r', flush=True)
-                t.set_postfix({'validloss': '{:.6f}'.format(loss_aver),'epoch' : '{:02d}'.format(epoch)}) 
+                t.set_postfix({'validloss': '{:.2f}'.format(loss_aver),'epoch' : '{:02d}'.format(epoch)}) 
 
         tb.add_scalar('ValidLoss',loss_aver,epoch)
         torch.cuda.empty_cache()
@@ -225,8 +225,8 @@ def train():
         epoch_len = len(str(n_epochs))
         
         print_msg = (f'[{epoch:>{epoch_len}}/{n_epochs:>{epoch_len}}] ' +
-                     f'train_loss: {train_loss:.6f} ' +
-                     f'valid_loss: {valid_loss:.6f}')
+                     f'train_loss: {train_loss:.2f} ' +
+                     f'valid_loss: {valid_loss:.2f}')
         
         print(print_msg)
         '''
