@@ -53,7 +53,6 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
 save_dir = './save_model/' + TIMESTAMP
-result_dir = './result/' + TIMESTAMP
 
 trainFolder = MovingMNIST(is_train=True,
                           root='data/',
@@ -90,7 +89,10 @@ def train():
     encoder = Encoder(encoder_params[0], encoder_params[1]).cuda()
     decoder = Decoder(decoder_params[0], decoder_params[1]).cuda()
     net = ED(encoder, decoder)
-    tb = SummaryWriter('./runs/' + TIMESTAMP)
+    run_dir = './runs/' + TIMESTAMP
+    if not os.path.isdir(run_dir):
+        os.makedirs(run_dir)
+    tb = SummaryWriter(run_dir)
     # initialize the early_stopping object
     early_stopping = EarlyStopping(patience=20, verbose=True)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
