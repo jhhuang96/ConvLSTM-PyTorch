@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+@File    :   main.py
+@Time    :   2020/03/09
+@Author  :   jhhuang96
+@Mail    :   hjh096@126.com
+@Version :   1.0
+@Description:   
+'''
+
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 from encoder import Encoder
@@ -116,9 +127,9 @@ def train():
     lossfunction = nn.MSELoss().cuda()
     optimizer = optim.Adam(net.parameters(), lr=args.lr)
     pla_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,
-                                                    factor=0.5,
-                                                    patience=4,
-                                                    verbose=True)
+                                                      factor=0.5,
+                                                      patience=4,
+                                                      verbose=True)
 
     # to track the training loss as the model trains
     train_losses = []

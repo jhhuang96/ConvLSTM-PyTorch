@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+@File    :   encoder.py
+@Time    :   2020/03/09 18:47:50
+@Author  :   jhhuang96
+@Mail    :   hjh096@126.com
+@Version :   1.0
+@Description:   encoder
+'''
+
 from torch import nn
 from utils import make_layers
 import torch

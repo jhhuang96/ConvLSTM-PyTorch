@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+@File    :   ConvRNN.py
+@Time    :   2020/03/09
+@Author  :   jhhuang96
+@Mail    :   hjh096@126.com
+@Version :   1.0
+@Description:   convrnn cell
+'''
+
 import torch
 import torch.nn as nn
 
