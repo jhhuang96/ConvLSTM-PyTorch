@@ -151,11 +151,7 @@ def train():
             optimizer.zero_grad()
             net.train()
             pred = net(inputs)  # B,S,C,H,W
-            loss = 0
-            for seq in range(10):
-                curloss = lossfunction(pred, label)
-                loss += curloss
-
+            loss = lossfunction(pred, label)
             loss_aver = loss.item() / args.batch_size
             train_losses.append(loss_aver)
             loss.backward()
@@ -178,12 +174,7 @@ def train():
                 inputs = inputVar.to(device)
                 label = targetVar.to(device)
                 pred = net(inputs)
-
-                loss = 0
-                for seq in range(10):
-                    curloss = lossfunction(pred, label)
-                    loss += curloss
-
+                loss = lossfunction(pred, label)
                 loss_aver = loss.item() / args.batch_size
                 # record validation loss
                 valid_losses.append(loss_aver)
