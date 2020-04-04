@@ -46,7 +46,7 @@ MovingMNIST(is_train=True,
 
 ## Result
 
- ![MovingMNIST](https://github.com/jhhuang96/ConvLSTM-PyTorch/tree/master/movingmnist.png)
+ ![MovingMNIST](https://github.com/jhhuang96/ConvLSTM-PyTorch/tree/master/images/movingmnist.png)
 
 - The first line is the real data for the first 10 frames
 - The second line is prediction of the model for the last 10 frames
