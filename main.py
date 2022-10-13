@@ -14,7 +14,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 from encoder import Encoder
 from decoder import Decoder
 from model import ED
-from net_params import convlstm_encoder_params, convlstm_decoder_params, convgru_encoder_params, convgru_decoder_params
+from net_params import convlstm_encoder_params, convlstm_decoder_params
 from data.mm import MovingMNIST
 import torch
 from torch import nn
@@ -32,10 +32,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-clstm',
                     '--convlstm',
                     help='use convlstm as base cell',
-                    action='store_true')
-parser.add_argument('-cgru',
-                    '--convgru',
-                    help='use convgru as base cell',
                     action='store_true')
 parser.add_argument('--batch_size',
                     default=4,
@@ -82,15 +78,9 @@ validLoader = torch.utils.data.DataLoader(validFolder,
                                           batch_size=args.batch_size,
                                           shuffle=False)
 
-if args.convlstm:
-    encoder_params = convlstm_encoder_params
-    decoder_params = convlstm_decoder_params
-if args.convgru:
-    encoder_params = convgru_encoder_params
-    decoder_params = convgru_decoder_params
-else:
-    encoder_params = convgru_encoder_params
-    decoder_params = convgru_decoder_params
+
+encoder_params = convlstm_encoder_params
+decoder_params = convlstm_decoder_params
 
 
 def train():
@@ -169,11 +159,19 @@ def train():
             net.eval()
             t = tqdm(validLoader, leave=False, total=len(validLoader))
             for i, (idx, targetVar, inputVar, _, _) in enumerate(t):
+
+            # i is the number of iteration whithin one epoch, so max(i) = self.length/batch_size 
+            
                 if i == 3000:
                     break
-                inputs = inputVar.to(device)
-                label = targetVar.to(device)
-                pred = net(inputs)
+                inputs = inputVar.to(device) 
+                label = targetVar.to(device) 
+                pred = net(inputs)           
+            # The inputs, label(ground truth) and pred(prediction) are all torch.Size([batch_size, 10, 1, 64, 64])
+            # sicne we set the frames_input and frames_output to be 10, so there are 10 frames in one train/test sequence.
+
+        # Visualize the input and output here
+        
                 loss = lossfunction(pred, label)
                 loss_aver = loss.item() / args.batch_size
                 # record validation loss

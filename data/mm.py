@@ -41,6 +41,9 @@ class MovingMNIST(data.Dataset):
                 self.mnist = load_mnist(root)
             else:
                 self.dataset = load_fixed_set(root, False)
+
+        # Change the number of training sequences here.
+        
         self.length = int(1e4) if self.dataset is None else self.dataset.shape[1]
 
         self.is_train = is_train
