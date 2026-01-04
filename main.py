@@ -128,8 +128,7 @@ def train():
     optimizer = optim.Adam(net.parameters(), lr=args.lr)
     pla_lr_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,
                                                       factor=0.5,
-                                                      patience=4,
-                                                      verbose=True)
+                                                      patience=4)
 
     # to track the training loss as the model trains
     train_losses = []

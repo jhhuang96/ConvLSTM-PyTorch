@@ -1,0 +1,11 @@
+### 训练并输出日志到文件
+python .\main.py > .\log.txt 2>&1
+### 推理(仅训练1个epoch，日志见./log.txt)
+python .\test.py
+
+------------------------------------------------------------
+
+### Train and output logs to a file
+python .\main.py > .\log.txt 2>&1
+### Run inference (only trained for 1 epoch, logs can be found at ./log.txt)
+python .\test.py
